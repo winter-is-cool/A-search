@@ -9,11 +9,12 @@ public class Main {
         graph.blockNode(1, 0);
         graph.blockNode(1, 1);
         graph.blockNode(1, 2);
-        graph.blockNode(1, 4);
+        graph.blockNode(1, 3);
 
         Node start = new Node(0, 0);
         Node goal = new Node(4, 4);
 
+        // Set start and goal in the graph
         graph.setStart(start);
         graph.setGoal(goal);
 
@@ -22,34 +23,11 @@ public class Main {
 
         if (path == null) {
             System.out.println("No path exists.");
-            printGrid(graph, path);
         } else {
-            System.out.println("Path found!");
-            printGrid(graph, path);
-        }
-    }
-
-    // Updated printGrid method
-    public static void printGrid(Graph graph, List<Node> path) {
-        // Print the grid
-        for (int y = 0; y < graph.getHeight(); y++) {
-            for (int x = 0; x < graph.getWidth(); x++) {
-                Node node = new Node(x, y);
-
-                // Check if the node is the start, goal, or in the path
-                if (node.equals(graph.getStart())) {
-                    System.out.print("S "); // Start node
-                } else if (node.equals(graph.getGoal())) {
-                    System.out.print("G "); // Goal node
-                } else if (path != null && path.contains(node)) {
-                    System.out.print("P "); // Path node
-                } else if (graph.isBlocked(x, y)) {
-                    System.out.print("X "); // Blocked node
-                } else {
-                    System.out.print(". "); // Empty node
-                }
-            }
-            System.out.println();
+            System.out.println("Path: " + path);
+            // Visualize the grid with animation
+            GridVisualizer visualizer = new GridVisualizer(graph, path);
+            visualizer.visualize();
         }
     }
 }
