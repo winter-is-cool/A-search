@@ -2,18 +2,27 @@ package Algorithm;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GridPanel extends JPanel {
     private Graph graph;
     private List<Node> path;
-    private int cellSize = 50;  // Size of each grid cell
-    private int animationIndex = 0;  // Index to track animation progress
+    private int cellSize = 50; // Size of each grid cell
+    private int animationIndex = 0; // Index to track animation progress
     private boolean isPaused = true; // To track whether the animation is paused
+    private Map<String, Image> images;
 
     public GridPanel(Graph graph, List<Node> path) {
         this.graph = graph;
         this.path = path;
+
+        images = new HashMap<>();
+        images.put("blocked", new ImageIcon("./wall1.png").getImage());
+        images.put("default", new ImageIcon("./ground_dry1.png").getImage());
+        images.put("goal", new ImageIcon("./chest.png").getImage());
+        images.put("path", new ImageIcon("./path1.png").getImage());
         setPreferredSize(new Dimension(graph.getWidth() * cellSize, graph.getHeight() * cellSize));
     }
 
@@ -21,7 +30,6 @@ public class GridPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         drawGrid(g);
-        drawPath(g);
         drawStartAndGoal(g);
 
         // Always draw the magenta circle, whether paused or not
@@ -36,24 +44,23 @@ public class GridPanel extends JPanel {
             for (int x = 0; x < graph.getWidth(); x++) {
                 Node node = new Node(x, y);
 
+                g.drawImage(images.get("default"), x * cellSize, y * cellSize, cellSize, cellSize, this);
+
+                // Draw the path image if the node is part of the path
+                if (path != null && path.contains(node)) {
+                    g.drawImage(images.get("path"), x * cellSize, y * cellSize, cellSize, cellSize, this);
+                }
+
                 // Draw blocked nodes in red
                 if (graph.isBlocked(x, y)) {
-                    g.setColor(Color.RED);
-                    g.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                    g.drawImage(images.get("blocked"), x * cellSize, y * cellSize, cellSize, cellSize, this);
+                } else if (node.equals(graph.getGoal())) {
+                    g.drawImage(images.get("goal"), x * cellSize, y * cellSize, cellSize, cellSize, this);
                 }
+                
                 // Draw the grid lines
                 g.setColor(Color.BLACK);
                 g.drawRect(x * cellSize, y * cellSize, cellSize, cellSize);
-            }
-        }
-    }
-
-    // Draw the path nodes
-    private void drawPath(Graphics g) {
-        if (path != null) {
-            g.setColor(Color.GREEN);
-            for (Node node : path) {
-                g.fillRect(node.x * cellSize + 5, node.y * cellSize + 5, cellSize - 10, cellSize - 10);
             }
         }
     }
@@ -62,9 +69,6 @@ public class GridPanel extends JPanel {
     private void drawStartAndGoal(Graphics g) {
         g.setColor(Color.BLUE);
         g.fillRect(graph.getStart().x * cellSize + 5, graph.getStart().y * cellSize + 5, cellSize - 10, cellSize - 10);
-
-        g.setColor(Color.ORANGE);
-        g.fillRect(graph.getGoal().x * cellSize + 5, graph.getGoal().y * cellSize + 5, cellSize - 10, cellSize - 10);
     }
 
     // Draw the animated object (path) moving along
@@ -78,7 +82,7 @@ public class GridPanel extends JPanel {
     public void animate() {
         if (animationIndex < path.size() && !isPaused) {
             animationIndex++;
-            repaint();  // Trigger paintComponent to redraw the panel
+            repaint(); // Trigger paintComponent to redraw the panel
         }
     }
 
@@ -101,8 +105,8 @@ public class GridPanel extends JPanel {
     // Reset the animation to the first frame and trigger a repaint
     public void resetAnimation() {
         animationIndex = 0;
-        isPaused = false; // Ensure that the animation isn't paused after reset
-        repaint();  // Trigger repaint to reset the panel's view
+        isPaused = true; // Ensure that the animation isn't paused after reset
+        repaint(); // Trigger repaint to reset the panel's view
     }
 
     // Toggle the animation pause state
@@ -123,7 +127,7 @@ public class GridPanel extends JPanel {
             }).start();
         }
 
-        repaint();  // Ensure repaint happens when pausing or resuming
+        repaint(); // Ensure repaint happens when pausing or resuming
     }
 
     // Return whether the animation is paused
