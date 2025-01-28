@@ -11,8 +11,11 @@ public class Main {
         graph.blockNode(1, 2);
         graph.blockNode(1, 3);
 
+        graph.addTeleportationLink(new Node(4, 0), new Node(3, 3));
+        graph.addTeleportationLink(new Node(3, 3), new Node(4, 0));
+        
         Node start = new Node(0, 0);
-        Node goal = new Node(4, 4);
+        Node goal = new Node(3, 2);
 
         // Set start and goal in the graph
         graph.setStart(start);

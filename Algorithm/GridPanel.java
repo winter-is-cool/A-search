@@ -57,7 +57,13 @@ public class GridPanel extends JPanel {
                 } else if (node.equals(graph.getGoal())) {
                     g.drawImage(images.get("goal"), x * cellSize, y * cellSize, cellSize, cellSize, this);
                 }
-                
+
+                // Draw teleportation nodes with a blue circle
+                if (graph.isTeleportationNode(node)) {
+                    g.setColor(Color.orange);
+                    g.fillOval(x * cellSize + 15, y * cellSize + 15, cellSize - 30, cellSize - 30);
+                }
+
                 // Draw the grid lines
                 g.setColor(Color.BLACK);
                 g.drawRect(x * cellSize, y * cellSize, cellSize, cellSize);
