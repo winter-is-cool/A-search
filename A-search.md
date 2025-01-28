@@ -1,5 +1,7 @@
 # A* Search in Non-Euclidean Pathfinding Problems
 
+my algorithm is at https://github.com/winter-is-cool/A-search
+
 ## Overview
 A* search is a widely used and powerful graph search algorithm. It combines aspects of **Dijkstra's Algorithm** (which finds the shortest path by exploring all possible paths) and **Greedy Best First Search** (which uses heuristics to prioritize paths that seem closer to the goal). In this paper, we explore the application of A* in non-Euclidean pathfinding problems, focusing on graphs with **teleportation nodes** and **wrap-around edges**.
 
