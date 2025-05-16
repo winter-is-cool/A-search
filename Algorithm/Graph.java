@@ -16,6 +16,53 @@ public class Graph {
         this.teleportationLinks = new HashMap<>();
     }
 
+    public void generateRandomGrid(int width, int height, double blockedPercent, double teleportPercent) {
+        Random rand = new Random();
+        clearGrid();
+
+        List<Node> teleportNodes = new ArrayList<>();
+
+        // Set blocked and teleportation nodes
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                double r = rand.nextDouble();
+                if (r < blockedPercent) {
+                    blockNode(x, y);
+                } else if (r < blockedPercent + teleportPercent) {
+                    Node tNode = new Node(x, y);
+                    teleportNodes.add(tNode);
+                }
+            }
+        }
+
+        // Ensure even number of teleportation nodes
+        if (teleportNodes.size() % 2 == 1 && !teleportNodes.isEmpty()) {
+            teleportNodes.remove(rand.nextInt(teleportNodes.size()));
+        }
+
+        // Randomly pair up teleportation nodes
+        Collections.shuffle(teleportNodes, rand);
+        for (int i = 0; i + 1 < teleportNodes.size(); i += 2) {
+            Node a = teleportNodes.get(i);
+            Node b = teleportNodes.get(i + 1);
+            addTeleportationLink(a, b);
+            addTeleportationLink(b, a);
+        }
+        // If odd number, last node is left unlinked
+
+        // Random start and goal (not blocked or teleport)
+        Node start, goal;
+        do {
+            start = new Node(rand.nextInt(width), rand.nextInt(height));
+        } while (isBlocked(start.x, start.y) || teleportNodes.contains(start));
+        setStart(start);
+
+        do {
+            goal = new Node(rand.nextInt(width), rand.nextInt(height));
+        } while (isBlocked(goal.x, goal.y) || teleportNodes.contains(goal) || goal.equals(start));
+        setGoal(goal);
+    }
+
     // Set start and goal nodes
     public void setStart(Node start) {
         this.start = start;
@@ -50,7 +97,7 @@ public class Graph {
     public boolean isWrapAroundEnabled() {
         return wrapAroundEnabled;
     }
-    
+
     // **ADD TELEPORTATION NODES**
     public void addTeleportationLink(Node from, Node to) {
         teleportationLinks.put(from, to);
@@ -77,10 +124,14 @@ public class Graph {
 
             if (wrapAroundEnabled) {
                 // Wrap-around logic
-                if (newX < 0) newX = width - 1;
-                if (newX >= width) newX = 0;
-                if (newY < 0) newY = height - 1;
-                if (newY >= height) newY = 0;
+                if (newX < 0)
+                    newX = width - 1;
+                if (newX >= width)
+                    newX = 0;
+                if (newY < 0)
+                    newY = height - 1;
+                if (newY >= height)
+                    newY = 0;
             }
 
             if (isValid(newX, newY)) {
@@ -112,8 +163,20 @@ public class Graph {
     public void unblockNode(int x, int y) {
         blocked[x][y] = false;
     }
-    
+
     public List<Node> getTeleportationNodes() {
         return new ArrayList<>(teleportationLinks.keySet());
     }
+
+    public void clearGrid() {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                blocked[x][y] = false;
+            }
+        }
+        teleportationLinks.clear();
+        start = null;
+        goal = null;
+    }
+
 }

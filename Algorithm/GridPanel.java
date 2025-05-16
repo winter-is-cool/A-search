@@ -146,4 +146,14 @@ public class GridPanel extends JPanel {
         this.animationIndex = 0; // Reset animation index
         repaint(); // Refresh the grid visualization
     }
+
+    public void setGraph(Graph graph) {
+        this.graph = graph;
+        setPreferredSize(new Dimension(graph.getWidth() * cellSize, graph.getHeight() * cellSize));
+        repaint();
+    }
+
+    public int getCellSize() {
+        return cellSize;
+    }
 }

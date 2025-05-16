@@ -33,79 +33,126 @@ public class GridVisualizer {
         frame.setVisible(true);
     }
 
-    // Create control panel with buttons
+    // ...existing code...
+
     private JPanel createControlPanel() {
         JPanel panel = new JPanel();
 
-        // Restart Button
+        // --- Randomization Controls ---
+        JLabel blockedLabel = new JLabel("Blocked %:");
+        JSlider blockedSlider = new JSlider(0, 80, 20); // 0-80%, default 20%
+        blockedSlider.setMajorTickSpacing(20);
+        blockedSlider.setMinorTickSpacing(5);
+        blockedSlider.setPaintTicks(true);
+        blockedSlider.setPaintLabels(true);
+
+        JLabel teleportLabel = new JLabel("Teleport %:");
+        JSlider teleportSlider = new JSlider(0, 30, 5); // 0-30%, default 5%
+        teleportSlider.setMajorTickSpacing(10);
+        teleportSlider.setMinorTickSpacing(2);
+        teleportSlider.setPaintTicks(true);
+        teleportSlider.setPaintLabels(true);
+
+        JLabel widthLabel = new JLabel("Width:");
+        JSpinner widthSpinner = new JSpinner(new SpinnerNumberModel(graph.getWidth(), 5, 50, 1));
+        JLabel heightLabel = new JLabel("Height:");
+        JSpinner heightSpinner = new JSpinner(new SpinnerNumberModel(graph.getHeight(), 5, 50, 1));
+
+        JButton randomButton = new JButton("Generate Random Grid");
+        randomButton.addActionListener(e -> {
+            int width = (int) widthSpinner.getValue();
+            int height = (int) heightSpinner.getValue();
+            double blockedPercent = blockedSlider.getValue() / 100.0;
+            double teleportPercent = teleportSlider.getValue() / 100.0;
+
+            // Recreate the graph with new size if changed
+            if (width != graph.getWidth() || height != graph.getHeight()) {
+                graph = new Graph(width, height);
+                gridPanel.setGraph(graph); // use setter
+            }
+
+            graph.generateRandomGrid(width, height, blockedPercent, teleportPercent);
+
+            // Recalculate the path
+            AStar aStar = new AStar(graph, graph.getStart(), graph.getGoal());
+            path = aStar.search();
+
+            gridPanel.setPath(path);
+            gridPanel.repaint();
+
+            // Resize the panel if grid size changed
+            gridPanel.setPreferredSize(new Dimension(width * gridPanel.getCellSize(), height * gridPanel.getCellSize()));
+            frame.pack();
+
+            if (path == null) {
+                JOptionPane.showMessageDialog(frame, "No path exists with the current configuration.");
+            }
+        });
+
+        // --- Existing Controls ---
         JButton restartButton = new JButton("Restart");
         restartButton.addActionListener(e -> gridPanel.resetAnimation());
 
-        // Pause Button
         JButton pauseButton = new JButton("Pause");
         pauseButton.addActionListener(e -> gridPanel.togglePause());
 
-        // Step Forward Button
         JButton stepForwardButton = new JButton("Step Forward");
         stepForwardButton.addActionListener(e -> gridPanel.stepForward());
 
-        // Step Backward Button
         JButton stepBackwardButton = new JButton("Step Backward");
         stepBackwardButton.addActionListener(e -> gridPanel.stepBackward());
 
-        // Wrap-Around Toggle Button
         JButton wrapAroundButton = new JButton("Toggle Wrap-Around");
         wrapAroundButton.addActionListener(e -> {
             graph.setWrapAroundEnabled(!graph.isWrapAroundEnabled());
             System.out.println("Wrap-Around is now " + (graph.isWrapAroundEnabled() ? "enabled" : "disabled"));
 
-            // Recalculate the path
             AStar aStar = new AStar(graph, graph.getStart(), graph.getGoal());
             path = aStar.search();
-
-            // Update the grid panel with the new path
             gridPanel.setPath(path);
             gridPanel.repaint();
 
-            // Notify if no path exists
             if (path == null) {
                 JOptionPane.showMessageDialog(frame, "No path exists with the current configuration.");
             }
         });
 
-        // Teleportation Toggle Button
         JButton teleportationButton = new JButton("Toggle Teleportation");
         teleportationButton.addActionListener(e -> {
             teleportationEnabled = !teleportationEnabled;
             System.out.println("Teleportation is now " + (teleportationEnabled ? "enabled" : "disabled"));
 
-            // Update teleportation nodes to behave as blocked nodes if disabled
             if (!teleportationEnabled) {
                 for (Node teleportNode : graph.getTeleportationNodes()) {
                     graph.blockNode(teleportNode.x, teleportNode.y);
                 }
             } else {
-                // Unblock teleportation nodes when re-enabled
                 for (Node teleportNode : graph.getTeleportationNodes()) {
                     graph.unblockNode(teleportNode.x, teleportNode.y);
                 }
             }
 
-            // Recalculate the path
             AStar aStar = new AStar(graph, graph.getStart(), graph.getGoal());
             path = aStar.search();
-
-            // Update the grid panel with the new path
             gridPanel.setPath(path);
             gridPanel.repaint();
 
-            // Notify if no path exists
             if (path == null) {
                 JOptionPane.showMessageDialog(frame, "No path exists with the current configuration.");
             }
         });
 
-        // Add buttons to control panel
+        // --- Add controls to panel ---
+        panel.add(blockedLabel);
+        panel.add(blockedSlider);
+        panel.add(teleportLabel);
+        panel.add(teleportSlider);
+        panel.add(widthLabel);
+        panel.add(widthSpinner);
+        panel.add(heightLabel);
+        panel.add(heightSpinner);
+        panel.add(randomButton);
+
         panel.add(restartButton);
         panel.add(pauseButton);
         panel.add(stepForwardButton);
