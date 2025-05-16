@@ -7,6 +7,7 @@ public class Graph {
     private boolean[][] blocked;
     private Node start, goal;
     private Map<Node, Node> teleportationLinks; // Teleportation nodes
+    private boolean wrapAroundEnabled = false; // Wrap-around flag
 
     public Graph(int width, int height) {
         this.width = width;
@@ -41,6 +42,15 @@ public class Graph {
         return blocked[x][y];
     }
 
+    // Enable or disable wrap-around
+    public void setWrapAroundEnabled(boolean enabled) {
+        this.wrapAroundEnabled = enabled;
+    }
+
+    public boolean isWrapAroundEnabled() {
+        return wrapAroundEnabled;
+    }
+    
     // **ADD TELEPORTATION NODES**
     public void addTeleportationLink(Node from, Node to) {
         teleportationLinks.put(from, to);
@@ -65,11 +75,13 @@ public class Graph {
             int newX = node.x + dir[0];
             int newY = node.y + dir[1];
 
-            // **Wrap-Around Logic**
-            if (newX < 0) newX = width - 1;
-            if (newX >= width) newX = 0;
-            if (newY < 0) newY = height - 1;
-            if (newY >= height) newY = 0;
+            if (wrapAroundEnabled) {
+                // Wrap-around logic
+                if (newX < 0) newX = width - 1;
+                if (newX >= width) newX = 0;
+                if (newY < 0) newY = height - 1;
+                if (newY >= height) newY = 0;
+            }
 
             if (isValid(newX, newY)) {
                 neighbors.add(new Node(newX, newY));
@@ -85,7 +97,8 @@ public class Graph {
     }
 
     private boolean isValid(int x, int y) {
-        return !isBlocked(x, y);
+        // Ensure the indices are within bounds and the node is not blocked
+        return (x >= 0 && x < width && y >= 0 && y < height) && !isBlocked(x, y);
     }
 
     public int getWidth() {
@@ -94,5 +107,13 @@ public class Graph {
 
     public int getHeight() {
         return height;
+    }
+
+    public void unblockNode(int x, int y) {
+        blocked[x][y] = false;
+    }
+    
+    public List<Node> getTeleportationNodes() {
+        return new ArrayList<>(teleportationLinks.keySet());
     }
 }

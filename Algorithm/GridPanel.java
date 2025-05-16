@@ -140,4 +140,10 @@ public class GridPanel extends JPanel {
     public boolean isPaused() {
         return isPaused;
     }
+
+    public void setPath(List<Node> path) {
+        this.path = path;
+        this.animationIndex = 0; // Reset animation index
+        repaint(); // Refresh the grid visualization
+    }
 }
