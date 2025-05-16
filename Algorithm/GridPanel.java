@@ -13,6 +13,9 @@ public class GridPanel extends JPanel {
     private int animationIndex = 0; // Index to track animation progress
     private boolean isPaused = true; // To track whether the animation is paused
     private Map<String, Image> images;
+    private static final int MIN_CELL_SIZE = 5;
+    private static final int MAX_CELL_SIZE = 40;
+    private static final int PREFERRED_DRAW_SIZE = 800; // pixels
 
     public GridPanel(Graph graph, List<Node> path) {
         this.graph = graph;
@@ -29,17 +32,18 @@ public class GridPanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        drawGrid(g);
-        drawStartAndGoal(g);
+        int cellSize = getCellSize(); // Get the dynamic cell size
+        drawGrid(g, cellSize);
+        drawStartAndGoal(g, cellSize);
 
         // Always draw the magenta circle, whether paused or not
         if (path != null && animationIndex < path.size()) {
-            drawAnimation(g);
+            drawAnimation(g, cellSize);
         }
     }
 
-    // Draw the grid with blocked nodes and path
-    private void drawGrid(Graphics g) {
+    // Update drawGrid to accept cellSize
+    private void drawGrid(Graphics g, int cellSize) {
         for (int y = 0; y < graph.getHeight(); y++) {
             for (int x = 0; x < graph.getWidth(); x++) {
                 Node node = new Node(x, y);
@@ -61,7 +65,9 @@ public class GridPanel extends JPanel {
                 // Draw teleportation nodes with a blue circle
                 if (graph.isTeleportationNode(node)) {
                     g.setColor(Color.orange);
-                    g.fillOval(x * cellSize + 15, y * cellSize + 15, cellSize - 30, cellSize - 30);
+                    int ovalMargin = Math.max(2, cellSize / 5);
+                    g.fillOval(x * cellSize + ovalMargin, y * cellSize + ovalMargin, cellSize - 2 * ovalMargin,
+                            cellSize - 2 * ovalMargin);
                 }
 
                 // Draw the grid lines
@@ -71,17 +77,21 @@ public class GridPanel extends JPanel {
         }
     }
 
-    // Draw the start (S) and goal (G) nodes
-    private void drawStartAndGoal(Graphics g) {
+    // Update drawStartAndGoal to accept cellSize
+    private void drawStartAndGoal(Graphics g, int cellSize) {
         g.setColor(Color.BLUE);
-        g.fillRect(graph.getStart().x * cellSize + 5, graph.getStart().y * cellSize + 5, cellSize - 10, cellSize - 10);
+        int margin = Math.max(2, cellSize / 10);
+        g.fillRect(graph.getStart().x * cellSize + margin, graph.getStart().y * cellSize + margin,
+                cellSize - 2 * margin, cellSize - 2 * margin);
     }
 
-    // Draw the animated object (path) moving along
-    private void drawAnimation(Graphics g) {
+    // Update drawAnimation to accept cellSize
+    private void drawAnimation(Graphics g, int cellSize) {
         Node current = path.get(animationIndex);
         g.setColor(Color.MAGENTA);
-        g.fillOval(current.x * cellSize + 5, current.y * cellSize + 5, cellSize - 10, cellSize - 10);
+        int margin = Math.max(2, cellSize / 10);
+        g.fillOval(current.x * cellSize + margin, current.y * cellSize + margin, cellSize - 2 * margin,
+                cellSize - 2 * margin);
     }
 
     // Increment animation index and trigger repaint
@@ -154,6 +164,15 @@ public class GridPanel extends JPanel {
     }
 
     public int getCellSize() {
-        return cellSize;
+        int cellWidth = Math.max(MIN_CELL_SIZE, PREFERRED_DRAW_SIZE / graph.getWidth());
+        int cellHeight = Math.max(MIN_CELL_SIZE, PREFERRED_DRAW_SIZE / graph.getHeight());
+        return Math.min(cellWidth, cellHeight);
     }
+
+    @Override
+    public Dimension getPreferredSize() {
+        int cellSize = getCellSize();
+        return new Dimension(graph.getWidth() * cellSize, graph.getHeight() * cellSize);
+    }
+
 }

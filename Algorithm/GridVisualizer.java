@@ -20,43 +20,52 @@ public class GridVisualizer {
         frame = new JFrame("A* Pathfinding Visualization");
         gridPanel = new GridPanel(graph, path);
 
-        // Set up the main panel and frame
         JPanel controlPanel = createControlPanel();
-        frame.setLayout(new BorderLayout());
-        frame.add(gridPanel, BorderLayout.CENTER);
-        frame.add(controlPanel, BorderLayout.SOUTH);
+        // Add a left border to the control panel for a dividing line
+        controlPanel.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, Color.GRAY));
 
-        // Set up the window
+        // Use JSplitPane to place grid and panel side by side
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, gridPanel, controlPanel);
+        splitPane.setDividerSize(4); // Thin divider
+        splitPane.setDividerLocation(gridPanel.getPreferredSize().width + 10); // Adjust as needed
+        splitPane.setResizeWeight(1.0); // Grid takes more space
+
+        frame.setLayout(new BorderLayout());
+        frame.add(splitPane, BorderLayout.CENTER);
+
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setLocationRelativeTo(null); // Center the window
         frame.setVisible(true);
     }
 
-    // ...existing code...
-
     private JPanel createControlPanel() {
         JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS)); // Add this line for vertical layout
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Optional: padding
 
         // --- Randomization Controls ---
         JLabel blockedLabel = new JLabel("Blocked %:");
-        JSlider blockedSlider = new JSlider(0, 80, 20); // 0-80%, default 20%
+        JSlider blockedSlider = new JSlider(0, 80, 20);
         blockedSlider.setMajorTickSpacing(20);
         blockedSlider.setMinorTickSpacing(5);
         blockedSlider.setPaintTicks(true);
         blockedSlider.setPaintLabels(true);
 
         JLabel teleportLabel = new JLabel("Teleport %:");
-        JSlider teleportSlider = new JSlider(0, 30, 5); // 0-30%, default 5%
+        JSlider teleportSlider = new JSlider(0, 30, 5);
         teleportSlider.setMajorTickSpacing(10);
         teleportSlider.setMinorTickSpacing(2);
         teleportSlider.setPaintTicks(true);
         teleportSlider.setPaintLabels(true);
 
         JLabel widthLabel = new JLabel("Width:");
-        JSpinner widthSpinner = new JSpinner(new SpinnerNumberModel(graph.getWidth(), 5, 50, 1));
+        JSpinner widthSpinner = new JSpinner(new SpinnerNumberModel(graph.getWidth(), 5, 100, 1));
+        widthSpinner.setMaximumSize(widthSpinner.getPreferredSize()); // Prevent vertical stretching
+
         JLabel heightLabel = new JLabel("Height:");
-        JSpinner heightSpinner = new JSpinner(new SpinnerNumberModel(graph.getHeight(), 5, 50, 1));
+        JSpinner heightSpinner = new JSpinner(new SpinnerNumberModel(graph.getHeight(), 5, 100, 1));
+        heightSpinner.setMaximumSize(heightSpinner.getPreferredSize()); // Prevent vertical stretching
 
         JButton randomButton = new JButton("Generate Random Grid");
         randomButton.addActionListener(e -> {
@@ -81,7 +90,8 @@ public class GridVisualizer {
             gridPanel.repaint();
 
             // Resize the panel if grid size changed
-            gridPanel.setPreferredSize(new Dimension(width * gridPanel.getCellSize(), height * gridPanel.getCellSize()));
+            gridPanel
+                    .setPreferredSize(new Dimension(width * gridPanel.getCellSize(), height * gridPanel.getCellSize()));
             frame.pack();
 
             if (path == null) {
@@ -142,17 +152,21 @@ public class GridVisualizer {
             }
         });
 
-        // --- Add controls to panel ---
+        // --- Add controls to panel (vertically) ---
         panel.add(blockedLabel);
         panel.add(blockedSlider);
+        panel.add(Box.createVerticalStrut(10));
         panel.add(teleportLabel);
         panel.add(teleportSlider);
+        panel.add(Box.createVerticalStrut(10));
         panel.add(widthLabel);
         panel.add(widthSpinner);
         panel.add(heightLabel);
         panel.add(heightSpinner);
+        panel.add(Box.createVerticalStrut(10));
         panel.add(randomButton);
 
+        panel.add(Box.createVerticalStrut(20));
         panel.add(restartButton);
         panel.add(pauseButton);
         panel.add(stepForwardButton);
