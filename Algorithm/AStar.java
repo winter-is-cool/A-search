@@ -10,6 +10,7 @@ import java.util.Set;
 public class AStar {
     private Graph graph;
     private Node start, goal;
+    private int nodesSearched = 0; // Add this field
 
     public AStar(Graph graph, Node start, Node goal) {
         this.graph = graph;
@@ -18,6 +19,7 @@ public class AStar {
     }
 
     public List<Node> search() {
+        nodesSearched = 0; // Reset counter at the start of each search
         PriorityQueue<Node> openSet = new PriorityQueue<>(Comparator.comparingDouble(n -> n.f));
         Set<Node> closedSet = new HashSet<>();
 
@@ -28,6 +30,7 @@ public class AStar {
 
         while (!openSet.isEmpty()) {
             Node current = openSet.poll();
+            nodesSearched++; // Increment for each node processed
 
             // Goal reached
             if (current.equals(goal)) {
@@ -59,6 +62,10 @@ public class AStar {
 
         System.out.println("No path found.");
         return null;
+    }
+
+    public int getNodesSearched() {
+        return nodesSearched;
     }
 
     // Calculate heuristic (e.g., Euclidean or Manhattan)

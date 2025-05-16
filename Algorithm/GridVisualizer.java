@@ -10,6 +10,8 @@ public class GridVisualizer {
     private JFrame frame;
     private GridPanel gridPanel;
     private boolean teleportationEnabled = true; // Toggle for teleportation nodes
+    private JLabel timeLabel = new JLabel("Time: 0 ms");
+    private JLabel nodesLabel = new JLabel("Nodes searched: 0");
 
     public GridVisualizer(Graph graph, List<Node> path) {
         this.graph = graph;
@@ -74,22 +76,27 @@ public class GridVisualizer {
             double blockedPercent = blockedSlider.getValue() / 100.0;
             double teleportPercent = teleportSlider.getValue() / 100.0;
 
-            // Recreate the graph with new size if changed
             if (width != graph.getWidth() || height != graph.getHeight()) {
                 graph = new Graph(width, height);
-                gridPanel.setGraph(graph); // use setter
+                gridPanel.setGraph(graph);
             }
 
             graph.generateRandomGrid(width, height, blockedPercent, teleportPercent);
 
-            // Recalculate the path
+            // --- Measure time and nodes searched ---
+            long startTime = System.currentTimeMillis();
             AStar aStar = new AStar(graph, graph.getStart(), graph.getGoal());
             path = aStar.search();
+            long endTime = System.currentTimeMillis();
+            long elapsed = endTime - startTime;
+            int nodesSearched = aStar.getNodesSearched(); // You need to implement this in your AStar class
+
+            timeLabel.setText("Time: " + elapsed + " ms");
+            nodesLabel.setText("Nodes searched: " + nodesSearched);
 
             gridPanel.setPath(path);
             gridPanel.repaint();
 
-            // Resize the panel if grid size changed
             gridPanel
                     .setPreferredSize(new Dimension(width * gridPanel.getCellSize(), height * gridPanel.getCellSize()));
             frame.pack();
@@ -153,6 +160,9 @@ public class GridVisualizer {
         });
 
         // --- Add controls to panel (vertically) ---
+        panel.add(timeLabel);
+        panel.add(nodesLabel);
+        panel.add(Box.createVerticalStrut(10));
         panel.add(blockedLabel);
         panel.add(blockedSlider);
         panel.add(Box.createVerticalStrut(10));

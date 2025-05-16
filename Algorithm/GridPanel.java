@@ -14,7 +14,6 @@ public class GridPanel extends JPanel {
     private boolean isPaused = true; // To track whether the animation is paused
     private Map<String, Image> images;
     private static final int MIN_CELL_SIZE = 5;
-    private static final int MAX_CELL_SIZE = 40;
     private static final int PREFERRED_DRAW_SIZE = 800; // pixels
 
     public GridPanel(Graph graph, List<Node> path) {
