@@ -41,6 +41,25 @@ public class GridVisualizer {
         frame.setVisible(true);
     }
 
+    private void recalculateAndDisplayPath() {
+        long startTime = System.currentTimeMillis();
+        AStar aStar = new AStar(graph, graph.getStart(), graph.getGoal());
+        path = aStar.search();
+        long endTime = System.currentTimeMillis();
+        long elapsed = endTime - startTime;
+        int nodesSearched = aStar.getNodesSearched();
+
+        timeLabel.setText("Time: " + elapsed + " ms");
+        nodesLabel.setText("Nodes searched: " + nodesSearched);
+
+        gridPanel.setPath(path);
+        gridPanel.repaint();
+
+        if (path == null) {
+            JOptionPane.showMessageDialog(frame, "No path exists with the current configuration.");
+        }
+    }
+
     private JPanel createControlPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS)); // Add this line for vertical layout
@@ -83,27 +102,11 @@ public class GridVisualizer {
 
             graph.generateRandomGrid(width, height, blockedPercent, teleportPercent);
 
-            // --- Measure time and nodes searched ---
-            long startTime = System.currentTimeMillis();
-            AStar aStar = new AStar(graph, graph.getStart(), graph.getGoal());
-            path = aStar.search();
-            long endTime = System.currentTimeMillis();
-            long elapsed = endTime - startTime;
-            int nodesSearched = aStar.getNodesSearched(); // You need to implement this in your AStar class
-
-            timeLabel.setText("Time: " + elapsed + " ms");
-            nodesLabel.setText("Nodes searched: " + nodesSearched);
-
-            gridPanel.setPath(path);
-            gridPanel.repaint();
-
             gridPanel
                     .setPreferredSize(new Dimension(width * gridPanel.getCellSize(), height * gridPanel.getCellSize()));
             frame.pack();
 
-            if (path == null) {
-                JOptionPane.showMessageDialog(frame, "No path exists with the current configuration.");
-            }
+            recalculateAndDisplayPath();
         });
 
         // --- Existing Controls ---
@@ -113,25 +116,19 @@ public class GridVisualizer {
         JButton pauseButton = new JButton("Pause");
         pauseButton.addActionListener(e -> gridPanel.togglePause());
 
-        JButton stepForwardButton = new JButton("Step Forward");
+        JButton stepForwardButton = new JButton(
+                "Step Forward");
         stepForwardButton.addActionListener(e -> gridPanel.stepForward());
 
-        JButton stepBackwardButton = new JButton("Step Backward");
+        JButton stepBackwardButton = new JButton(
+                "Step Backward");
         stepBackwardButton.addActionListener(e -> gridPanel.stepBackward());
 
         JButton wrapAroundButton = new JButton("Toggle Wrap-Around");
         wrapAroundButton.addActionListener(e -> {
             graph.setWrapAroundEnabled(!graph.isWrapAroundEnabled());
             System.out.println("Wrap-Around is now " + (graph.isWrapAroundEnabled() ? "enabled" : "disabled"));
-
-            AStar aStar = new AStar(graph, graph.getStart(), graph.getGoal());
-            path = aStar.search();
-            gridPanel.setPath(path);
-            gridPanel.repaint();
-
-            if (path == null) {
-                JOptionPane.showMessageDialog(frame, "No path exists with the current configuration.");
-            }
+            recalculateAndDisplayPath();
         });
 
         JButton teleportationButton = new JButton("Toggle Teleportation");
@@ -148,15 +145,7 @@ public class GridVisualizer {
                     graph.unblockNode(teleportNode.x, teleportNode.y);
                 }
             }
-
-            AStar aStar = new AStar(graph, graph.getStart(), graph.getGoal());
-            path = aStar.search();
-            gridPanel.setPath(path);
-            gridPanel.repaint();
-
-            if (path == null) {
-                JOptionPane.showMessageDialog(frame, "No path exists with the current configuration.");
-            }
+            recalculateAndDisplayPath();
         });
 
         // --- Add controls to panel (vertically) ---
