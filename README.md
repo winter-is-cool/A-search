@@ -27,6 +27,28 @@ I'm releasing it because I think it's a fun little project that I probably overc
    - Use the "Generate Random Grid" or "Generate from Seed" buttons to create new scenarios.
    - Copy and share the seed string to reproduce any grid configuration.
 
+## Seed Format
+
+The application uses a composite seed string to encode the entire grid configuration, including start and end positions.  
+The format is:
+
+```
+width-height-blockedPercent-teleportPercent-seed-startX-startY-endX-endY
+```
+
+**Example:**
+```
+20-20-0.2-0.05-1234567890-0-0-19-19
+```
+- `width` and `height`: grid dimensions
+- `blockedPercent`: fraction of blocked cells (e.g., 0.2 for 20%)
+- `teleportPercent`: fraction of teleportation nodes (e.g., 0.05 for 5%)
+- `seed`: random seed for grid generation
+- `startX`, `startY`: coordinates of the start node
+- `endX`, `endY`: coordinates of the goal node
+
+You can copy, share, or manually edit this seed to reproduce or customize any scenario.
+
 ## Purpose
 
 This application was developed for a school presentation to help visualize and understand the behavior of pathfinding algorithms in both standard and non-Euclidean grid environments.  

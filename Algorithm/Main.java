@@ -2,7 +2,23 @@ package Algorithm;
 
 import java.util.List;
 
+/**
+ * Entry point for the A* Search Visualizer application.
+ * Initializes the grid and launches the GUI.
+ * This class sets up a 5x5 grid, blocks certain nodes, adds teleportation links,
+ * and runs the A* search algorithm to find a path from the start node to the goal node.
+ * If a path is found, it visualizes the grid with the path highlighted.
+ * @author winteriscool / winter_is_cool_
+ * @version 0.1.0
+ * @since 2025-05-27
+ */
 public class Main {
+
+    /**
+     * launches the A* Search Visualizer application.
+     * 
+     * @param args Command line arguments (not used).
+     */
     public static void main(String[] args) {
         // Create a 5x5 grid
         Graph graph = new Graph(5, 5);

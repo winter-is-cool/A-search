@@ -2,6 +2,10 @@ package Algorithm;
 
 import java.util.*;
 
+/**
+ * Graph class representing a grid with nodes, blocked cells, teleportation links, and wrap-around functionality.
+ * This class provides methods to generate a random grid, manage nodes, and find neighbors with teleportation and wrap-around capabilities.
+ */
 public class Graph {
     private int width, height;
     private boolean[][] blocked;
@@ -9,6 +13,9 @@ public class Graph {
     private Map<Node, Node> teleportationLinks; // Teleportation nodes
     private boolean wrapAroundEnabled = false; // Wrap-around flag
 
+    /**
+     * Node class representing a point in the grid with coordinates and cost attributes.
+     */
     public Graph(int width, int height) {
         this.width = width;
         this.height = height;
@@ -16,6 +23,15 @@ public class Graph {
         this.teleportationLinks = new HashMap<>();
     }
 
+    /**
+     * Generates a random grid with specified dimensions, blocked cells, teleportation nodes, and a random seed.
+     *
+     * @param width           Width of the grid.
+     * @param height          Height of the grid.
+     * @param blockedPercent  Percentage of cells to be blocked.
+     * @param teleportPercent Percentage of cells to be teleportation nodes.
+     * @param seed            Random seed for reproducibility.
+     */
     public void generateRandomGrid(int width, int height, double blockedPercent, double teleportPercent, long seed) {
         Random rand = new Random(seed);
         clearGrid();
@@ -63,55 +79,117 @@ public class Graph {
         setGoal(goal);
     }
 
-    // Set start and goal nodes
+    /**
+     * Sets the start node for pathfinding.
+     * 
+     * @param start
+     */
     public void setStart(Node start) {
         this.start = start;
     }
 
+    /**
+     * Sets the goal node for pathfinding.
+     * 
+     * @param goal
+     */
     public void setGoal(Node goal) {
         this.goal = goal;
     }
 
-    // Get start and goal nodes
+    /**
+     * Gets the start node.
+     * 
+     * @return The start node.
+     */
     public Node getStart() {
         return start;
     }
 
+    /**
+     * Gets the goal node.
+     * 
+     * @return The goal node.
+     */
     public Node getGoal() {
         return goal;
     }
 
+    /**
+     * Blocks a node at the specified coordinates.
+     * 
+     * @param x X-coordinate of the node to block.
+     * @param y Y-coordinate of the node to block.
+     */
     public void blockNode(int x, int y) {
         blocked[x][y] = true;
     }
 
+    /**
+     * Checks if a node at the specified coordinates is blocked.
+     * 
+     * @param x X-coordinate of the node.
+     * @param y Y-coordinate of the node.
+     * @return True if the node is blocked, false otherwise.
+     */
     public boolean isBlocked(int x, int y) {
         return blocked[x][y];
     }
 
-    // Enable or disable wrap-around
+    /**
+     * Enables or disables wrap-around functionality for the grid.
+     * When enabled, nodes at the edges will wrap around to the opposite edge.
+     * 
+     * @param enabled True to enable wrap-around, false to disable.
+     */
     public void setWrapAroundEnabled(boolean enabled) {
         this.wrapAroundEnabled = enabled;
     }
 
+    /**
+     * Checks if wrap-around functionality is enabled.
+     * 
+     * @return True if wrap-around is enabled, false otherwise.
+     */
     public boolean isWrapAroundEnabled() {
         return wrapAroundEnabled;
     }
 
-    // **ADD TELEPORTATION NODES**
+    /**
+     * Adds a teleportation link between two nodes.
+     * 
+     * @param from The node from which the teleportation occurs.
+     * @param to   The destination node for the teleportation.
+     */
     public void addTeleportationLink(Node from, Node to) {
         teleportationLinks.put(from, to);
     }
 
+    /**
+     * Removes a teleportation link for a specific node.
+     * 
+     * @param node The node for which the teleportation link is removed.
+     */
     public boolean isTeleportationNode(Node node) {
         return teleportationLinks.containsKey(node);
     }
 
+    /**
+     * Gets the teleportation destination for a specific node.
+     * 
+     * @param node The node for which to get the teleportation destination.
+     * @return The destination node if it exists, null otherwise.
+     */
     public Node getTeleportDestination(Node node) {
         return teleportationLinks.get(node);
     }
 
-    // **MODIFY NEIGHBORS TO INCLUDE TELEPORTS AND WRAP-AROUND**
+    /**
+     * Gets the neighbors of a node, including wrap-around and teleportation links.
+     * 
+     * @param node The node for which to find neighbors.
+     * @return A list of neighboring nodes.
+     */
     public List<Node> getNeighbors(Node node) {
         List<Node> neighbors = new ArrayList<>();
 
@@ -147,27 +225,58 @@ public class Graph {
         return neighbors;
     }
 
+    /**
+     * Checks if the given coordinates are valid (within bounds and not blocked).
+     * 
+     * @param x X-coordinate.
+     * @param y Y-coordinate.
+     * @return True if valid, false otherwise.
+     */
     private boolean isValid(int x, int y) {
         // Ensure the indices are within bounds and the node is not blocked
         return (x >= 0 && x < width && y >= 0 && y < height) && !isBlocked(x, y);
     }
 
+/**
+     * Gets the width of the grid.
+     * 
+     * @return The width of the grid.
+     */
     public int getWidth() {
         return width;
     }
 
+    /**
+     * Gets the height of the grid.
+     * 
+     * @return The height of the grid.
+     */
     public int getHeight() {
         return height;
     }
 
+    /**
+     * Unblocks a node at the specified coordinates.
+     * 
+     * @param x X-coordinate of the node to unblock.
+     * @param y Y-coordinate of the node to unblock.
+     */
     public void unblockNode(int x, int y) {
         blocked[x][y] = false;
     }
 
+    /**
+     * Gets a list of all teleportation nodes in the grid.
+     * 
+     * @return A list of nodes that have teleportation links.
+     */
     public List<Node> getTeleportationNodes() {
         return new ArrayList<>(teleportationLinks.keySet());
     }
 
+    /**
+     * Clears the grid, removing all blocked nodes, teleportation links, and resetting start and goal nodes.
+     */
     public void clearGrid() {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
@@ -179,6 +288,14 @@ public class Graph {
         goal = null;
     }
 
+    /**
+     * Gets the cost of moving from one node to another.
+     * This can be modified to account for different terrain costs or other factors.
+     * 
+     * @param from The starting node.
+     * @param to   The destination node.
+     * @return The cost of moving from 'from' to 'to'.
+     */
     public double getCost(Node from, Node to) {
         return 1.0; // Uniform cost for all edges
     }

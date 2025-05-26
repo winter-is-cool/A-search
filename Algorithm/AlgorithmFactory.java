@@ -1,5 +1,9 @@
 package Algorithm;
 
+/**
+ * Factory class to create instances of AStar algorithm with different configurations.
+ * This allows for easy switching between A* Search, Greedy Best-First Search, and Dijkstra's Algorithm.
+ */
 public class AlgorithmFactory {
     public static AStar createAlgorithm(String algorithm, Graph graph, Node start, Node goal) {
         switch (algorithm) {

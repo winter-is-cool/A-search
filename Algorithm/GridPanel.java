@@ -6,18 +6,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * GridPanel is a JPanel that visualizes a grid-based graph and animates a path through it.
+ * It allows interaction to set start and goal nodes, and provides methods to animate the path.
+ */
 public class GridPanel extends JPanel {
-    private Graph graph;
-    private List<Node> path;
+    private Graph graph; // The graph to visualize
+    private List<Node> path; // The path to animate through the grid
     private int cellSize = 50; // Size of each grid cell
     private int animationIndex = 0; // Index to track animation progress
     private boolean isPaused = true; // To track whether the animation is paused
-    private Map<String, Image> images;
-    private static final int MIN_CELL_SIZE = 5;
+    private Map<String, Image> images; // Map to hold images for different node types
+    private static final int MIN_CELL_SIZE = 5; // pixels
     private static final int PREFERRED_DRAW_SIZE = 800; // pixels
     private boolean settingStart = true; // true: set start, false: set end
     private GridVisualizer visualizer; // Reference to the visualizer for interaction
 
+    /**
+     * Constructor for GridPanel.
+     *
+     * @param graph The graph to visualize.
+     * @param path  The path to animate.
+     * @param visualizer The visualizer that manages the grid and path updates.
+     */
     public GridPanel(Graph graph, List<Node> path, GridVisualizer visualizer) {
         this.graph = graph;
         this.path = path;
@@ -37,11 +48,13 @@ public class GridPanel extends JPanel {
                 int x = e.getX() / cellSize;
                 int y = e.getY() / cellSize;
 
+                // Check if the click is within the grid bounds
                 if (x < 0 || x >= graph.getWidth() || y < 0 || y >= graph.getHeight())
                     return;
                 if (graph.isBlocked(x, y))
                     return; // Don't allow start/end on blocked
 
+                // Toggle the setting for start and goal
                 if (settingStart) {
                     graph.setStart(new Node(x, y));
                 } else {
@@ -57,6 +70,11 @@ public class GridPanel extends JPanel {
         });
     }
 
+    /**
+     * Paints the grid and the path animation.
+     * @param g The Graphics object to draw on.
+     * This method dynamically calculates the cell size based on the grid dimensions
+     */
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -70,7 +88,12 @@ public class GridPanel extends JPanel {
         }
     }
 
-    // Update drawGrid to accept cellSize
+    /**
+     * Draws the grid, including the path and blocked nodes.
+     *
+     * @param g        The Graphics object to draw on.
+     * @param cellSize The size of each cell in the grid.
+     */
     private void drawGrid(Graphics g, int cellSize) {
         for (int y = 0; y < graph.getHeight(); y++) {
             for (int x = 0; x < graph.getWidth(); x++) {
@@ -105,7 +128,12 @@ public class GridPanel extends JPanel {
         }
     }
 
-    // Update drawStartAndGoal to accept cellSize
+    /**
+     * Draws the start and goal nodes on the grid.
+     *
+     * @param g        The Graphics object to draw on.
+     * @param cellSize The size of each cell in the grid.
+     */
     private void drawStartAndGoal(Graphics g, int cellSize) {
         g.setColor(Color.BLUE);
         int margin = Math.max(2, cellSize / 10);
@@ -113,7 +141,12 @@ public class GridPanel extends JPanel {
                 cellSize - 2 * margin, cellSize - 2 * margin);
     }
 
-    // Update drawAnimation to accept cellSize
+    /**
+     * Draws the current animation frame as a magenta circle.
+     *
+     * @param g        The Graphics object to draw on.
+     * @param cellSize The size of each cell in the grid.
+     */
     private void drawAnimation(Graphics g, int cellSize) {
         Node current = path.get(animationIndex);
         g.setColor(Color.MAGENTA);
@@ -122,7 +155,10 @@ public class GridPanel extends JPanel {
                 cellSize - 2 * margin);
     }
 
-    // Increment animation index and trigger repaint
+    /**
+     * Animates the path by incrementing the animation index and repainting the panel.
+     * This method should be called periodically to update the animation.
+     */
     public void animate() {
         if (animationIndex < path.size() && !isPaused) {
             animationIndex++;
@@ -130,7 +166,10 @@ public class GridPanel extends JPanel {
         }
     }
 
-    // Decrement animation index to step backward
+    /**
+     * Steps backward in the animation by decrementing the animation index.
+     * This allows the user to go back to the previous frame in the animation.
+     */
     public void stepBackward() {
         if (animationIndex > 0) {
             animationIndex--;
@@ -138,7 +177,10 @@ public class GridPanel extends JPanel {
         }
     }
 
-    // Increment animation index to step forward
+    /**
+     * Steps forward in the animation by incrementing the animation index.
+     * This allows the user to go to the next frame in the animation.
+     */
     public void stepForward() {
         if (animationIndex < path.size()) {
             animationIndex++;
@@ -146,14 +188,20 @@ public class GridPanel extends JPanel {
         }
     }
 
-    // Reset the animation to the first frame and trigger a repaint
+    /**
+     * Resets the animation to the beginning.
+     * This method sets the animation index to 0 and repaints the panel.
+     */
     public void resetAnimation() {
         animationIndex = 0;
         isPaused = true; // Ensure that the animation isn't paused after reset
-        repaint(); // Trigger repaint to reset the panel's view
+        repaint();
     }
 
-    // Toggle the animation pause state
+    /**
+     * Toggles the pause state of the animation.
+     * If paused, it resumes the animation; if running, it pauses it.
+     */
     public void togglePause() {
         isPaused = !isPaused;
 
@@ -174,35 +222,67 @@ public class GridPanel extends JPanel {
         repaint(); // Ensure repaint happens when pausing or resuming
     }
 
-    // Return whether the animation is paused
+    /**
+     * Checks if the animation is currently paused.
+     *
+     * @return true if the animation is paused, false otherwise.
+     */
     public boolean isPaused() {
         return isPaused;
     }
 
+    /**
+     * Sets the path to animate through the grid.
+     * This method updates the path and resets the animation index.
+     *
+     * @param path The new path to animate.
+     */
     public void setPath(List<Node> path) {
         this.path = path;
         this.animationIndex = 0; // Reset animation index
         repaint(); // Refresh the grid visualization
     }
 
+    /**
+     * Sets the graph for this GridPanel.
+     * This method updates the graph and adjusts the preferred size of the panel.
+     *
+     * @param graph The new graph to visualize.
+     */
     public void setGraph(Graph graph) {
         this.graph = graph;
         setPreferredSize(new Dimension(graph.getWidth() * cellSize, graph.getHeight() * cellSize));
         repaint();
     }
 
+    /**
+     * Gets the size of each cell in the grid.
+     * This method calculates the cell size based on the grid dimensions and ensures it is not smaller than a minimum size.
+     *
+     * @return The size of each cell in pixels.
+     */
     public int getCellSize() {
         int cellWidth = Math.max(MIN_CELL_SIZE, PREFERRED_DRAW_SIZE / graph.getWidth());
         int cellHeight = Math.max(MIN_CELL_SIZE, PREFERRED_DRAW_SIZE / graph.getHeight());
         return Math.min(cellWidth, cellHeight);
     }
 
+    /**
+     * Gets the preferred size of the panel based on the graph dimensions and cell size.
+     * 
+     * @return The preferred size of the panel as a Dimension object.
+     */
     @Override
     public Dimension getPreferredSize() {
         int cellSize = getCellSize();
         return new Dimension(graph.getWidth() * cellSize, graph.getHeight() * cellSize);
     }
 
+    /**
+     * Sets whether the next click will set the start node or the goal node.
+     * 
+     * @param settingStart true to set the start node, false to set the goal node.
+     */
     public void setSettingStart(boolean settingStart) {
         this.settingStart = settingStart;
     }

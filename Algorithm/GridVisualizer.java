@@ -4,23 +4,37 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
+/**
+ * GridVisualizer is a GUI class that visualizes the A* pathfinding algorithm on a grid.
+ * It allows users to interactively generate grids, set start and goal nodes, and visualize
+ * the pathfinding process with various algorithms.
+ */
 public class GridVisualizer {
-    private Graph graph;
-    private List<Node> path;
-    private JFrame frame;
-    private GridPanel gridPanel;
+    private Graph graph; // The graph representing the grid
+    private List<Node> path; // The path found by the algorithm
+    private JFrame frame; // Main window for the visualization
+    private GridPanel gridPanel; // Panel that displays the grid and path
     private boolean teleportationEnabled = true; // Toggle for teleportation nodes
-    private JLabel timeLabel = new JLabel("Time: 0 ms");
-    private JLabel nodesLabel = new JLabel("Nodes searched: 0");
-    private JComboBox<String> algorithmDropdown;
-    private JTextField seedField;
-    private JSplitPane splitPane;
+    private JLabel timeLabel = new JLabel("Time: 0 ms"); // Label to display the time taken for pathfinding
+    private JLabel nodesLabel = new JLabel("Nodes searched: 0"); // Label to display the number of nodes searched
+    private JComboBox<String> algorithmDropdown; // Dropdown to select the pathfinding algorithm
+    private JTextField seedField; // Text field to display and input the seed for random grid generation
+    private JSplitPane splitPane; // Split pane to hold the grid panel and control panel
 
+    /**
+     * Constructor for GridVisualizer.
+     *
+     * @param graph The graph representing the grid.
+     * @param path  The path found by the algorithm.
+     */
     public GridVisualizer(Graph graph, List<Node> path) {
         this.graph = graph;
         this.path = path;
     }
 
+    /**
+     * Starts the visualization by creating the main window and control panel.
+     */
     public void visualize() {
         frame = new JFrame("A* Pathfinding Visualization");
         gridPanel = new GridPanel(graph, path, this);
@@ -44,6 +58,10 @@ public class GridVisualizer {
         frame.setVisible(true);
     }
 
+    /**
+     * Recalculates the path using the selected algorithm and updates the display.
+     * This method is called when the user changes the algorithm or generates a new grid.
+     */
     void recalculateAndDisplayPath() {
         String algorithm = (String) algorithmDropdown.getSelectedItem();
         long startTime = System.nanoTime(); // Use nanoTime for better precision
@@ -67,12 +85,17 @@ public class GridVisualizer {
         }
     }
 
+    /**
+     * Updates the seed field with the current state of the grid, including width, height,
+     * blocked percentage, teleport percentage, and the current seed.
+     * 
+     * Composite seed format:
+     * width-height-blockedPercent-teleportPercent-seed-startX-startY-endX-endY
+     * Example: "10-10-0.2-0.05-123456789-0-0-9-9"
+     */
     public void updateSeedFieldWithCurrentState() {
         int width = graph.getWidth();
         int height = graph.getHeight();
-        // You may want to store blockedPercent, teleportPercent, and seed as fields in
-        // GridVisualizer
-        // For now, parse them from the current seed field:
         double blockedPercent = 0.2, teleportPercent = 0.05;
         long seed = System.currentTimeMillis();
         try {
@@ -89,10 +112,15 @@ public class GridVisualizer {
         if (start == null || goal == null)
             return;
         String compositeSeed = width + "-" + height + "-" + blockedPercent + "-" + teleportPercent + "-" + seed
-                + "-" + start.x + "-" + start.y + "-" + goal.x + "-" + goal.y;
+                + "-" + start.x + "-" + start.y + "-" + goal.x + "-" + goal.y; // formatting the seed string
         seedField.setText(compositeSeed);
     }
 
+    /**
+     * Creates the control panel with various controls for the grid visualization.
+     *
+     * @return The JPanel containing the control elements.
+     */
     private JPanel createControlPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS)); // Add this line for vertical layout
@@ -150,7 +178,7 @@ public class GridVisualizer {
 
             String compositeSeed = width + "-" + height + "-" + blockedPercent + "-" + teleportPercent + "-" + seed
                     + "-" + graph.getStart().x + "-" + graph.getStart().y
-                    + "-" + graph.getGoal().x + "-" + graph.getGoal().y;
+                    + "-" + graph.getGoal().x + "-" + graph.getGoal().y; // formatting the seed string
             seedField.setText(compositeSeed);
 
             gridPanel
@@ -201,7 +229,7 @@ public class GridVisualizer {
         JLabel algorithmLabel = new JLabel("Algorithm:");
         String[] algorithms = { "A* Search", "Greedy Best-First Search", "Dijkstra's Algorithm" };
         algorithmDropdown = new JComboBox<>(algorithms);
-        algorithmDropdown.setMaximumSize(algorithmDropdown.getPreferredSize()); // <-- Add this line
+        algorithmDropdown.setMaximumSize(algorithmDropdown.getPreferredSize());
         algorithmDropdown.addActionListener(e -> {
             recalculateAndDisplayPath();
         });
@@ -223,8 +251,13 @@ public class GridVisualizer {
         generateSeedButton.addActionListener(e -> {
             String seedText = seedField.getText().trim();
             try {
+                /** 
+                 * Composite seed format:
+                 * width-height-blocked-teleport-seed-startX-startY-endX-endY
+                 * Example: "10-10-0.2-0.05-123456789-0-0-9-9"
+                */
                 String[] parts = seedText.split("-");
-                if (parts.length != 9) // width-height-blocked-teleport-seed-startX-startY-endX-endY
+                if (parts.length != 9)
                     throw new Exception();
                 int width = Integer.parseInt(parts[0]);
                 int height = Integer.parseInt(parts[1]);
