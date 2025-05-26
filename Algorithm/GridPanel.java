@@ -15,10 +15,13 @@ public class GridPanel extends JPanel {
     private Map<String, Image> images;
     private static final int MIN_CELL_SIZE = 5;
     private static final int PREFERRED_DRAW_SIZE = 800; // pixels
+    private boolean settingStart = true; // true: set start, false: set end
+    private GridVisualizer visualizer; // Reference to the visualizer for interaction
 
-    public GridPanel(Graph graph, List<Node> path) {
+    public GridPanel(Graph graph, List<Node> path, GridVisualizer visualizer) {
         this.graph = graph;
         this.path = path;
+        this.visualizer = visualizer;
 
         images = new HashMap<>();
         images.put("blocked", new ImageIcon("./wall1.png").getImage());
@@ -26,6 +29,32 @@ public class GridPanel extends JPanel {
         images.put("goal", new ImageIcon("./chest.png").getImage());
         images.put("path", new ImageIcon("./path1.png").getImage());
         setPreferredSize(new Dimension(graph.getWidth() * cellSize, graph.getHeight() * cellSize));
+
+        addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int cellSize = getCellSize();
+                int x = e.getX() / cellSize;
+                int y = e.getY() / cellSize;
+
+                if (x < 0 || x >= graph.getWidth() || y < 0 || y >= graph.getHeight())
+                    return;
+                if (graph.isBlocked(x, y))
+                    return; // Don't allow start/end on blocked
+
+                if (settingStart) {
+                    graph.setStart(new Node(x, y));
+                } else {
+                    graph.setGoal(new Node(x, y));
+                }
+
+                repaint();
+                if (visualizer != null) {
+                    visualizer.recalculateAndDisplayPath();
+                    visualizer.updateSeedFieldWithCurrentState();
+                }
+            }
+        });
     }
 
     @Override
@@ -172,6 +201,10 @@ public class GridPanel extends JPanel {
     public Dimension getPreferredSize() {
         int cellSize = getCellSize();
         return new Dimension(graph.getWidth() * cellSize, graph.getHeight() * cellSize);
+    }
+
+    public void setSettingStart(boolean settingStart) {
+        this.settingStart = settingStart;
     }
 
 }

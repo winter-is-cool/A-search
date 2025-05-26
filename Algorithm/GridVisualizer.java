@@ -14,6 +14,7 @@ public class GridVisualizer {
     private JLabel nodesLabel = new JLabel("Nodes searched: 0");
     private JComboBox<String> algorithmDropdown;
     private JTextField seedField;
+    private JSplitPane splitPane;
 
     public GridVisualizer(Graph graph, List<Node> path) {
         this.graph = graph;
@@ -22,14 +23,14 @@ public class GridVisualizer {
 
     public void visualize() {
         frame = new JFrame("A* Pathfinding Visualization");
-        gridPanel = new GridPanel(graph, path);
+        gridPanel = new GridPanel(graph, path, this);
 
         JPanel controlPanel = createControlPanel();
         // Add a left border to the control panel for a dividing line
         controlPanel.setBorder(BorderFactory.createMatteBorder(0, 2, 0, 0, Color.GRAY));
 
         // Use JSplitPane to place grid and panel side by side
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, gridPanel, controlPanel);
+        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, gridPanel, controlPanel);
         splitPane.setDividerSize(4); // Thin divider
         splitPane.setDividerLocation(gridPanel.getPreferredSize().width + 10); // Adjust as needed
         splitPane.setResizeWeight(1.0); // Grid takes more space
@@ -43,7 +44,7 @@ public class GridVisualizer {
         frame.setVisible(true);
     }
 
-    private void recalculateAndDisplayPath() {
+    void recalculateAndDisplayPath() {
         String algorithm = (String) algorithmDropdown.getSelectedItem();
         long startTime = System.nanoTime(); // Use nanoTime for better precision
         AStar aStar = AlgorithmFactory.createAlgorithm(algorithm, graph, graph.getStart(), graph.getGoal());
@@ -55,12 +56,41 @@ public class GridVisualizer {
         timeLabel.setText(String.format("Time: %.3f ms", elapsed)); // Show 3 decimals
         nodesLabel.setText("Nodes searched: " + nodesSearched);
 
-        gridPanel.setPath(path);
-        gridPanel.repaint();
+        gridPanel = new GridPanel(graph, path, this);
+        splitPane.setLeftComponent(gridPanel); // Replace the old gridPanel in the UI
+        splitPane.setDividerLocation(gridPanel.getPreferredSize().width + 10);
+        splitPane.revalidate();
+        splitPane.repaint();
 
         if (path == null) {
             JOptionPane.showMessageDialog(frame, "No path exists with the current configuration.");
         }
+    }
+
+    public void updateSeedFieldWithCurrentState() {
+        int width = graph.getWidth();
+        int height = graph.getHeight();
+        // You may want to store blockedPercent, teleportPercent, and seed as fields in
+        // GridVisualizer
+        // For now, parse them from the current seed field:
+        double blockedPercent = 0.2, teleportPercent = 0.05;
+        long seed = System.currentTimeMillis();
+        try {
+            String[] parts = seedField.getText().split("-");
+            if (parts.length >= 5) {
+                blockedPercent = Double.parseDouble(parts[2]);
+                teleportPercent = Double.parseDouble(parts[3]);
+                seed = Long.parseLong(parts[4]);
+            }
+        } catch (Exception ignored) {
+        }
+        Node start = graph.getStart();
+        Node goal = graph.getGoal();
+        if (start == null || goal == null)
+            return;
+        String compositeSeed = width + "-" + height + "-" + blockedPercent + "-" + teleportPercent + "-" + seed
+                + "-" + start.x + "-" + start.y + "-" + goal.x + "-" + goal.y;
+        seedField.setText(compositeSeed);
     }
 
     private JPanel createControlPanel() {
@@ -101,17 +131,31 @@ public class GridVisualizer {
 
             if (width != graph.getWidth() || height != graph.getHeight()) {
                 graph = new Graph(width, height);
-                gridPanel.setGraph(graph);
+                gridPanel = new GridPanel(graph, path, this);
+                splitPane.setLeftComponent(gridPanel); // Replace the old gridPanel in the UI
+                splitPane.setDividerLocation(gridPanel.getPreferredSize().width + 10);
+                splitPane.revalidate();
+                splitPane.repaint();
             }
 
-            String compositeSeed = width + "-" + height + "-" + blockedPercent + "-" + teleportPercent + "-" + seed;
+            graph.generateRandomGrid(width, height, blockedPercent, teleportPercent, seed);
+
+            // Ensure start and goal are set and not null
+            if (graph.getStart() == null) {
+                graph.setStart(new Node(0, 0));
+            }
+            if (graph.getGoal() == null) {
+                graph.setGoal(new Node(width - 1, height - 1));
+            }
+
+            String compositeSeed = width + "-" + height + "-" + blockedPercent + "-" + teleportPercent + "-" + seed
+                    + "-" + graph.getStart().x + "-" + graph.getStart().y
+                    + "-" + graph.getGoal().x + "-" + graph.getGoal().y;
             seedField.setText(compositeSeed);
 
-            graph.generateRandomGrid(width, height, blockedPercent, teleportPercent, seed);
             gridPanel
                     .setPreferredSize(new Dimension(width * gridPanel.getCellSize(), height * gridPanel.getCellSize()));
             frame.pack();
-            seedField.setText(compositeSeed);
             recalculateAndDisplayPath();
         });
 
@@ -180,13 +224,17 @@ public class GridVisualizer {
             String seedText = seedField.getText().trim();
             try {
                 String[] parts = seedText.split("-");
-                if (parts.length != 5)
+                if (parts.length != 9) // width-height-blocked-teleport-seed-startX-startY-endX-endY
                     throw new Exception();
                 int width = Integer.parseInt(parts[0]);
                 int height = Integer.parseInt(parts[1]);
                 double blockedPercent = Double.parseDouble(parts[2]);
                 double teleportPercent = Double.parseDouble(parts[3]);
                 long seed = Long.parseLong(parts[4]);
+                int startX = Math.max(0, Math.min(width - 1, Integer.parseInt(parts[5])));
+                int startY = Math.max(0, Math.min(height - 1, Integer.parseInt(parts[6])));
+                int endX = Math.max(0, Math.min(width - 1, Integer.parseInt(parts[7])));
+                int endY = Math.max(0, Math.min(height - 1, Integer.parseInt(parts[8])));
 
                 // Update controls to match the seed
                 widthSpinner.setValue(width);
@@ -195,15 +243,33 @@ public class GridVisualizer {
                 teleportSlider.setValue((int) (teleportPercent * 100));
 
                 graph = new Graph(width, height);
-                gridPanel.setGraph(graph);
+                gridPanel = new GridPanel(graph, path, this);
+                splitPane.setLeftComponent(gridPanel); // Replace the old gridPanel in the UI
+                splitPane.setDividerLocation(gridPanel.getPreferredSize().width + 10);
+                splitPane.revalidate();
+                splitPane.repaint();
                 graph.generateRandomGrid(width, height, blockedPercent, teleportPercent, seed);
+
+                // Set start and goal, clamped to grid bounds
+                graph.setStart(new Node(startX, startY));
+                graph.setGoal(new Node(endX, endY));
+
                 gridPanel.setPreferredSize(
                         new Dimension(width * gridPanel.getCellSize(), height * gridPanel.getCellSize()));
                 frame.pack();
                 recalculateAndDisplayPath();
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(frame, "Invalid seed format. Use: width-height-blocked-teleport-seed");
+                JOptionPane.showMessageDialog(frame,
+                        "Invalid seed format. Use: width-height-blocked-teleport-seed-startX-startY-endX-endY");
             }
+        });
+
+        JToggleButton setStartToggle = new JToggleButton("Set Start (Blue)");
+        setStartToggle.setSelected(true); // Default to setting start
+
+        setStartToggle.addActionListener(e -> {
+            gridPanel.setSettingStart(setStartToggle.isSelected());
+            setStartToggle.setText(setStartToggle.isSelected() ? "Set Start (Blue)" : "Set End (Goal)");
         });
 
         // --- Add controls to panel (vertically) ---
@@ -215,6 +281,8 @@ public class GridVisualizer {
         panel.add(Box.createVerticalStrut(10));
         panel.add(teleportLabel);
         panel.add(teleportSlider);
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(setStartToggle);
         panel.add(Box.createVerticalStrut(10));
         panel.add(widthLabel);
         panel.add(widthSpinner);
