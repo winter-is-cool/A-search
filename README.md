@@ -11,7 +11,7 @@ I'm releasing it because I think it's a fun little project that I probably overc
 - **Manual Start/End Placement:** Toggle between setting the start and end node, then click on the grid to place them.
 - **Teleportation and Wrap-Around:** Enable teleportation nodes and wrap-around edges for non-Euclidean effects.
 - **Seed System:** Composite seed encodes all grid parameters and start/end positions, so you can reproduce and share any scenario.
-- **Performance Metrics:** See pathfinding time (in milliseconds) and the number of nodes searched.
+- **Performance Metrics:** See pathfinding time (in milliseconds) and the number of nodes searched and the number of nodes of the found path.
 - **Copyable Seed:** Easily copy the current seed for sharing or later use.
 
 ## Usage
