@@ -68,13 +68,11 @@ public class AStar {
         return nodesSearched;
     }
 
-    // Calculate heuristic (e.g., Euclidean or Manhattan)
-    private double calculateHeuristic(Node a, Node b) {
+    protected double calculateHeuristic(Node a, Node b) {
         return Math.abs(a.x - b.x) + Math.abs(a.y - b.y); // Example for Manhattan
     }
 
-    // Calculate cost (e.g., distance between nodes)
-    private double calculateCost(Node a, Node b) {
+    protected double calculateCost(Node a, Node b) {
         return 1.0; // Assume cost is constant for simplicity (can be modified)
     }
 

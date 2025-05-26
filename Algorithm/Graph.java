@@ -16,8 +16,8 @@ public class Graph {
         this.teleportationLinks = new HashMap<>();
     }
 
-    public void generateRandomGrid(int width, int height, double blockedPercent, double teleportPercent) {
-        Random rand = new Random();
+    public void generateRandomGrid(int width, int height, double blockedPercent, double teleportPercent, long seed) {
+        Random rand = new Random(seed);
         clearGrid();
 
         List<Node> teleportNodes = new ArrayList<>();
@@ -177,6 +177,10 @@ public class Graph {
         teleportationLinks.clear();
         start = null;
         goal = null;
+    }
+
+    public double getCost(Node from, Node to) {
+        return 1.0; // Uniform cost for all edges
     }
 
 }
