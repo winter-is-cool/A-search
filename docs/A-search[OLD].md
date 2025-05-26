@@ -1,3 +1,5 @@
+# **OLD!!! just here for archiving reasons**
+
 # A* Search in Non-Euclidean Pathfinding Problems
 
 my algorithm is at https://github.com/winter-is-cool/A-search

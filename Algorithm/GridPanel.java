@@ -24,10 +24,10 @@ public class GridPanel extends JPanel {
         this.visualizer = visualizer;
 
         images = new HashMap<>();
-        images.put("blocked", new ImageIcon("./wall1.png").getImage());
-        images.put("default", new ImageIcon("./ground_dry1.png").getImage());
-        images.put("goal", new ImageIcon("./chest.png").getImage());
-        images.put("path", new ImageIcon("./path1.png").getImage());
+        images.put("blocked", new ImageIcon("./resources/wall1.png").getImage());
+        images.put("default", new ImageIcon("./resources/ground_dry1.png").getImage());
+        images.put("goal", new ImageIcon("./resources/chest.png").getImage());
+        images.put("path", new ImageIcon("./resources/path1.png").getImage());
         setPreferredSize(new Dimension(graph.getWidth() * cellSize, graph.getHeight() * cellSize));
 
         addMouseListener(new java.awt.event.MouseAdapter() {
