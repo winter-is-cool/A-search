@@ -5,8 +5,10 @@ import java.awt.*;
 import java.util.List;
 
 /**
- * GridVisualizer is a GUI class that visualizes the A* pathfinding algorithm on a grid.
- * It allows users to interactively generate grids, set start and goal nodes, and visualize
+ * GridVisualizer is a GUI class that visualizes the A* pathfinding algorithm on
+ * a grid.
+ * It allows users to interactively generate grids, set start and goal nodes,
+ * and visualize
  * the pathfinding process with various algorithms.
  */
 public class GridVisualizer {
@@ -20,6 +22,7 @@ public class GridVisualizer {
     private JComboBox<String> algorithmDropdown; // Dropdown to select the pathfinding algorithm
     private JTextField seedField; // Text field to display and input the seed for random grid generation
     private JSplitPane splitPane; // Split pane to hold the grid panel and control panel
+    private JLabel pathLengthLabel = new JLabel("Path Length: 0"); // Label to display the length of the path
 
     /**
      * Constructor for GridVisualizer.
@@ -60,7 +63,8 @@ public class GridVisualizer {
 
     /**
      * Recalculates the path using the selected algorithm and updates the display.
-     * This method is called when the user changes the algorithm or generates a new grid.
+     * This method is called when the user changes the algorithm or generates a new
+     * grid.
      */
     void recalculateAndDisplayPath() {
         String algorithm = (String) algorithmDropdown.getSelectedItem();
@@ -74,6 +78,12 @@ public class GridVisualizer {
         timeLabel.setText(String.format("Time: %.3f ms", elapsed)); // Show 3 decimals
         nodesLabel.setText("Nodes searched: " + nodesSearched);
 
+        if (path != null) {
+            pathLengthLabel.setText("Path length: " + path.size());
+        } else {
+            pathLengthLabel.setText("Path length: 0");
+        }
+
         gridPanel = new GridPanel(graph, path, this);
         splitPane.setLeftComponent(gridPanel); // Replace the old gridPanel in the UI
         splitPane.setDividerLocation(gridPanel.getPreferredSize().width + 10);
@@ -86,7 +96,8 @@ public class GridVisualizer {
     }
 
     /**
-     * Updates the seed field with the current state of the grid, including width, height,
+     * Updates the seed field with the current state of the grid, including width,
+     * height,
      * blocked percentage, teleport percentage, and the current seed.
      * 
      * Composite seed format:
@@ -251,11 +262,11 @@ public class GridVisualizer {
         generateSeedButton.addActionListener(e -> {
             String seedText = seedField.getText().trim();
             try {
-                /** 
+                /**
                  * Composite seed format:
                  * width-height-blocked-teleport-seed-startX-startY-endX-endY
                  * Example: "10-10-0.2-0.05-123456789-0-0-9-9"
-                */
+                 */
                 String[] parts = seedText.split("-");
                 if (parts.length != 9)
                     throw new Exception();
@@ -308,6 +319,7 @@ public class GridVisualizer {
         // --- Add controls to panel (vertically) ---
         panel.add(timeLabel);
         panel.add(nodesLabel);
+        panel.add(pathLengthLabel);
         panel.add(Box.createVerticalStrut(10));
         panel.add(blockedLabel);
         panel.add(blockedSlider);
