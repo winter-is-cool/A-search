@@ -127,6 +127,88 @@ public class GridVisualizer {
         seedField.setText(compositeSeed);
     }
 
+    private void showComparisonTable(int width, int height, double blockedPercent, double teleportPercent) {
+        String[] algorithms = { "A* Search", "Greedy Best-First Search", "Dijkstra's Algorithm" };
+        String[] columnNames = { "Seed", "Algorithm", "Time (ms)", "Nodes Searched", "Path Length" };
+        Object[][] data = new Object[algorithms.length * 5][5];
+
+        for (int i = 0; i < 5; i++) {
+            long seed = System.currentTimeMillis() + i * 1000;
+            java.util.Random rand = new java.util.Random(seed);
+
+            // Generate random start and end nodes (not the same, not blocked)
+            int startX, startY, endX, endY;
+            do {
+                startX = rand.nextInt(width);
+                startY = rand.nextInt(height);
+                endX = rand.nextInt(width);
+                endY = rand.nextInt(height);
+            } while ((startX == endX && startY == endY));
+
+            for (int j = 0; j < algorithms.length; j++) {
+                Graph testGraph = new Graph(width, height);
+                testGraph.generateRandomGrid(width, height, blockedPercent, teleportPercent, seed);
+
+                // Ensure start and goal are not blocked
+                while (testGraph.isBlocked(startX, startY)) {
+                    startX = rand.nextInt(width);
+                    startY = rand.nextInt(height);
+                }
+                while (testGraph.isBlocked(endX, endY) || (startX == endX && startY == endY)) {
+                    endX = rand.nextInt(width);
+                    endY = rand.nextInt(height);
+                }
+
+                testGraph.setStart(new Node(startX, startY));
+                testGraph.setGoal(new Node(endX, endY));
+
+                AStar algo = AlgorithmFactory.createAlgorithm(algorithms[j], testGraph, testGraph.getStart(),
+                        testGraph.getGoal());
+                long start = System.nanoTime();
+                List<Node> testPath = algo.search();
+                long end = System.nanoTime();
+                double elapsed = (end - start) / 1_000_000.0;
+                int nodesSearched = algo.getNodesSearched();
+                int pathLength = (testPath != null) ? testPath.size() : 0;
+
+                int row = i * algorithms.length + j;
+                String compositeSeed = width + "-" + height + "-" + blockedPercent + "-" + teleportPercent + "-" + seed
+                        + "-" + startX + "-" + startY + "-" + endX + "-" + endY;
+                data[row][0] = compositeSeed;
+                data[row][1] = algorithms[j];
+                data[row][2] = String.format("%.3f", elapsed);
+                data[row][3] = nodesSearched;
+                data[row][4] = pathLength;
+            }
+        }
+
+        JTable table = new JTable(data, columnNames);
+        JScrollPane scrollPane = new JScrollPane(table);
+        table.setFillsViewportHeight(true);
+
+        JFrame compareFrame = new JFrame("Algorithm Comparison");
+        compareFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        compareFrame.add(scrollPane);
+        compareFrame.setSize(600, 300);
+        compareFrame.setLocationRelativeTo(frame);
+        compareFrame.setVisible(true);
+
+        table.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int row = table.rowAtPoint(e.getPoint());
+                int col = table.columnAtPoint(e.getPoint());
+                // If the seed column (index 0) is clicked
+                if (col == 0 && row >= 0) {
+                    Object value = table.getValueAt(row, col);
+                    if (value != null) {
+                        seedField.setText(value.toString());
+                    }
+                }
+            }
+        });
+    }
+
     /**
      * Creates the control panel with various controls for the grid visualization.
      *
@@ -316,6 +398,13 @@ public class GridVisualizer {
             setStartToggle.setText(setStartToggle.isSelected() ? "Set Start (Blue)" : "Set End (Goal)");
         });
 
+        JButton compareButton = new JButton("Compare Algorithms");
+        compareButton.addActionListener(e -> showComparisonTable(
+                (int) widthSpinner.getValue(),
+                (int) heightSpinner.getValue(),
+                blockedSlider.getValue() / 100.0,
+                teleportSlider.getValue() / 100.0));
+
         // --- Add controls to panel (vertically) ---
         panel.add(timeLabel);
         panel.add(nodesLabel);
@@ -341,6 +430,7 @@ public class GridVisualizer {
         panel.add(Box.createVerticalStrut(10));
         panel.add(algorithmLabel);
         panel.add(algorithmDropdown);
+        panel.add(compareButton);
         panel.add(Box.createVerticalStrut(10));
         panel.add(randomButton);
         panel.add(Box.createVerticalStrut(20));
