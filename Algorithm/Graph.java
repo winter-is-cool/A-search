@@ -3,8 +3,10 @@ package Algorithm;
 import java.util.*;
 
 /**
- * Graph class representing a grid with nodes, blocked cells, teleportation links, and wrap-around functionality.
- * This class provides methods to generate a random grid, manage nodes, and find neighbors with teleportation and wrap-around capabilities.
+ * Graph class representing a grid with nodes, blocked cells, teleportation
+ * links, and wrap-around functionality.
+ * This class provides methods to generate a random grid, manage nodes, and find
+ * neighbors with teleportation and wrap-around capabilities.
  */
 public class Graph {
     private int width, height;
@@ -14,7 +16,8 @@ public class Graph {
     private boolean wrapAroundEnabled = false; // Wrap-around flag
 
     /**
-     * Node class representing a point in the grid with coordinates and cost attributes.
+     * Node class representing a point in the grid with coordinates and cost
+     * attributes.
      */
     public Graph(int width, int height) {
         this.width = width;
@@ -24,7 +27,8 @@ public class Graph {
     }
 
     /**
-     * Generates a random grid with specified dimensions, blocked cells, teleportation nodes, and a random seed.
+     * Generates a random grid with specified dimensions, blocked cells,
+     * teleportation nodes, and a random seed.
      *
      * @param width           Width of the grid.
      * @param height          Height of the grid.
@@ -237,7 +241,7 @@ public class Graph {
         return (x >= 0 && x < width && y >= 0 && y < height) && !isBlocked(x, y);
     }
 
-/**
+    /**
      * Gets the width of the grid.
      * 
      * @return The width of the grid.
@@ -275,7 +279,8 @@ public class Graph {
     }
 
     /**
-     * Clears the grid, removing all blocked nodes, teleportation links, and resetting start and goal nodes.
+     * Clears the grid, removing all blocked nodes, teleportation links, and
+     * resetting start and goal nodes.
      */
     public void clearGrid() {
         for (int x = 0; x < width; x++) {
@@ -298,6 +303,44 @@ public class Graph {
      */
     public double getCost(Node from, Node to) {
         return 1.0; // Uniform cost for all edges
+    }
+
+    /**
+     * Gets the number of unblocked nodes (i.e., usable vertices).
+     * 
+     * @return The count of non-blocked vertices.
+     */
+    public int getVertexCount() {
+        int count = 0;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (!blocked[x][y]) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Gets the number of valid edges in the grid.
+     * Each unblocked node can have up to 4 neighbors (up, down, left, right),
+     * and optionally teleportation links.
+     * 
+     * @return The total number of edges in the graph.
+     */
+    public int getEdgeCount() {
+        int edgeCount = 0;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (!blocked[x][y]) {
+                    Node node = new Node(x, y);
+                    List<Node> neighbors = getNeighbors(node);
+                    edgeCount += neighbors.size();
+                }
+            }
+        }
+        return edgeCount;
     }
 
 }

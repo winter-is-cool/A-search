@@ -23,6 +23,8 @@ public class GridVisualizer {
     private JTextField seedField; // Text field to display and input the seed for random grid generation
     private JSplitPane splitPane; // Split pane to hold the grid panel and control panel
     private JLabel pathLengthLabel = new JLabel("Path Length: 0"); // Label to display the length of the path
+    private JLabel timeComplexityLabel = new JLabel("Time Complexity: ");
+    private JLabel spaceComplexityLabel = new JLabel("Space Complexity: ");
 
     /**
      * Constructor for GridVisualizer.
@@ -78,11 +80,10 @@ public class GridVisualizer {
         timeLabel.setText(String.format("Time: %.3f ms", elapsed)); // Show 3 decimals
         nodesLabel.setText("Nodes searched: " + nodesSearched);
 
-        if (path != null) {
-            pathLengthLabel.setText("Path length: " + path.size());
-        } else {
-            pathLengthLabel.setText("Path length: 0");
-        }
+        int pathLength = (path != null) ? path.size() : 0;
+        pathLengthLabel.setText("Path length: " + pathLength);
+
+        updateNumericComplexityFields(algorithm, pathLength);
 
         gridPanel = new GridPanel(graph, path, this);
         splitPane.setLeftComponent(gridPanel); // Replace the old gridPanel in the UI
@@ -129,14 +130,14 @@ public class GridVisualizer {
 
     private void showComparisonTable(int width, int height, double blockedPercent, double teleportPercent) {
         String[] algorithms = { "A* Search", "Greedy Best-First Search", "Dijkstra's Algorithm" };
-        String[] columnNames = { "Seed", "Algorithm", "Time (ms)", "Nodes Searched", "Path Length" };
-        Object[][] data = new Object[algorithms.length * 5][5];
+        String[] columnNames = { "Seed", "Algorithm", "Time (ms)", "Time Complexity", "Nodes Searched",
+                "Space Complexity", "Path Length" };
+        Object[][] data = new Object[algorithms.length * 5][7];
 
         for (int i = 0; i < 5; i++) {
             long seed = System.currentTimeMillis() + i * 1000;
             java.util.Random rand = new java.util.Random(seed);
 
-            // Generate random start and end nodes (not the same, not blocked)
             int startX, startY, endX, endY;
             do {
                 startX = rand.nextInt(width);
@@ -149,7 +150,6 @@ public class GridVisualizer {
                 Graph testGraph = new Graph(width, height);
                 testGraph.generateRandomGrid(width, height, blockedPercent, teleportPercent, seed);
 
-                // Ensure start and goal are not blocked
                 while (testGraph.isBlocked(startX, startY)) {
                     startX = rand.nextInt(width);
                     startY = rand.nextInt(height);
@@ -171,14 +171,21 @@ public class GridVisualizer {
                 int nodesSearched = algo.getNodesSearched();
                 int pathLength = (testPath != null) ? testPath.size() : 0;
 
+                int V = testGraph.getVertexCount();
+                int E = testGraph.getEdgeCount();
+
+                String[] complexityStrings = getComplexityStrings(algorithms[j], pathLength, V, E);
+
                 int row = i * algorithms.length + j;
                 String compositeSeed = width + "-" + height + "-" + blockedPercent + "-" + teleportPercent + "-" + seed
                         + "-" + startX + "-" + startY + "-" + endX + "-" + endY;
                 data[row][0] = compositeSeed;
                 data[row][1] = algorithms[j];
                 data[row][2] = String.format("%.3f", elapsed);
-                data[row][3] = nodesSearched;
-                data[row][4] = pathLength;
+                data[row][3] = complexityStrings[0]; // Time complexity formatted
+                data[row][4] = nodesSearched;
+                data[row][5] = complexityStrings[1]; // Space complexity formatted
+                data[row][6] = pathLength;
             }
         }
 
@@ -189,7 +196,7 @@ public class GridVisualizer {
         JFrame compareFrame = new JFrame("Algorithm Comparison");
         compareFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         compareFrame.add(scrollPane);
-        compareFrame.setSize(600, 300);
+        compareFrame.setSize(800, 300);
         compareFrame.setLocationRelativeTo(frame);
         compareFrame.setVisible(true);
 
@@ -198,7 +205,6 @@ public class GridVisualizer {
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 int row = table.rowAtPoint(e.getPoint());
                 int col = table.columnAtPoint(e.getPoint());
-                // If the seed column (index 0) is clicked
                 if (col == 0 && row >= 0) {
                     Object value = table.getValueAt(row, col);
                     if (value != null) {
@@ -207,6 +213,63 @@ public class GridVisualizer {
                 }
             }
         });
+    }
+
+    private void updateNumericComplexityFields(String algorithm, int pathLength) {
+        int V = graph.getVertexCount();
+        int E = graph.getEdgeCount();
+
+        String[] complexityStrings = getComplexityStrings(algorithm, pathLength, V, E);
+
+        timeComplexityLabel.setText("Time Complexity: " + complexityStrings[0]);
+        spaceComplexityLabel.setText("Space Complexity: " + complexityStrings[1]);
+    }
+
+    private String formatNumber(double value, String formula) {
+        if (Double.isNaN(value) || Double.isInfinite(value)) {
+            return "Invalid value (" + formula + ")";
+        } else if (value >= 1_000_000) {
+            return String.format("%.2e (%s)", value, formula);
+        } else {
+            return String.format("%.0f (%s)", value, formula);
+        }
+    }
+
+    // New helper method to get formatted complexity strings for table
+    private String[] getComplexityStrings(String algorithm, int pathLength, int V, int E) {
+        double timeComplexity = 0;
+        double spaceComplexity = 0;
+        String timeLabelStr, spaceLabelStr;
+
+        switch (algorithm) {
+            case "A* Search":
+                double branchingFactor = (V == 0) ? 1 : (double) E / V;
+                timeComplexity = Math.pow(branchingFactor, pathLength);
+                spaceComplexity = timeComplexity;
+                timeLabelStr = formatNumber(timeComplexity, "b^d");
+                spaceLabelStr = formatNumber(spaceComplexity, "b^d");
+                break;
+
+            case "Dijkstra's Algorithm":
+                timeComplexity = E + V * Math.log(Math.max(V, 1));
+                spaceComplexity = V;
+                timeLabelStr = formatNumber(timeComplexity, "E + V log V");
+                spaceLabelStr = formatNumber(spaceComplexity, "V");
+                break;
+
+            case "Greedy Best-First Search":
+                branchingFactor = (V == 0) ? 1 : (double) E / V;
+                timeComplexity = Math.pow(branchingFactor, pathLength * 0.7);
+                spaceComplexity = timeComplexity;
+                timeLabelStr = formatNumber(timeComplexity, "b^d*0.7");
+                spaceLabelStr = formatNumber(spaceComplexity, "b^d*0.7");
+                break;
+
+            default:
+                timeLabelStr = "Unknown";
+                spaceLabelStr = "Unknown";
+        }
+        return new String[] { timeLabelStr, spaceLabelStr };
     }
 
     /**
@@ -407,7 +470,9 @@ public class GridVisualizer {
 
         // --- Add controls to panel (vertically) ---
         panel.add(timeLabel);
+        panel.add(timeComplexityLabel);
         panel.add(nodesLabel);
+        panel.add(spaceComplexityLabel);
         panel.add(pathLengthLabel);
         panel.add(Box.createVerticalStrut(10));
         panel.add(blockedLabel);
