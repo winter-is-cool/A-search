@@ -58,8 +58,4 @@ I’m sharing it in case others find it useful, interesting, or just want to pla
 
 All art and graphics used in this project were created by me.
 
-## License
-
-This project is for educational and demonstration use.
-
 ---
