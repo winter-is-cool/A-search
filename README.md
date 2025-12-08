@@ -6,6 +6,8 @@ I'm releasing it because I think it's a fun little project that I probably overc
 
 ## Features
 
+![Preview of the program](docs/visualizer.png)
+
 - **Algorithm Visualization:** Compare A*, Greedy Best-First Search, and Dijkstra's Algorithm.
 - **Customizable Grid:** Adjust grid size, blocked cell percentage, and teleportation node percentage.
 - **Manual Start/End Placement:** Toggle between setting the start and end node, then click on the grid to place them.
